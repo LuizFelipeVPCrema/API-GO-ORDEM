@@ -1,0 +1,326 @@
+CREATE TABLE pericias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    codigo TEXT NOT NULL UNIQUE,
+    nome TEXT NOT NULL UNIQUE,
+
+    atributo_base TEXT NOT NULL
+        CHECK (
+            atributo_base IN (
+                'AGI',
+                'FOR',
+                'INT',
+                'PRE',
+                'VIG'
+            )
+        ),
+
+    somente_treinada INTEGER NOT NULL DEFAULT 0
+        CHECK (somente_treinada IN (0, 1)),
+
+    penalidade_carga INTEGER NOT NULL DEFAULT 0
+        CHECK (penalidade_carga IN (0, 1)),
+
+    permite_especializacao INTEGER NOT NULL DEFAULT 0
+        CHECK (permite_especializacao IN (0, 1)),
+
+    ordem_exibicao INTEGER NOT NULL UNIQUE,
+
+    ativa INTEGER NOT NULL DEFAULT 1
+        CHECK (ativa IN (0, 1)),
+
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO pericias (
+    id,
+    codigo,
+    nome,
+    atributo_base,
+    somente_treinada,
+    penalidade_carga,
+    permite_especializacao,
+    ordem_exibicao
+)
+VALUES
+    (
+        1,
+        'ACROBACIA',
+        'Acrobacia',
+        'AGI',
+        0,
+        1,
+        0,
+        1
+    ),
+    (
+        2,
+        'ADESTRAMENTO',
+        'Adestramento',
+        'PRE',
+        1,
+        0,
+        0,
+        2
+    ),
+    (
+        3,
+        'ARTES',
+        'Artes',
+        'PRE',
+        1,
+        0,
+        0,
+        3
+    ),
+    (
+        4,
+        'ATLETISMO',
+        'Atletismo',
+        'FOR',
+        0,
+        0,
+        0,
+        4
+    ),
+    (
+        5,
+        'ATUALIDADES',
+        'Atualidades',
+        'INT',
+        0,
+        0,
+        0,
+        5
+    ),
+    (
+        6,
+        'CIENCIAS',
+        'Ciências',
+        'INT',
+        1,
+        0,
+        0,
+        6
+    ),
+    (
+        7,
+        'CRIME',
+        'Crime',
+        'AGI',
+        1,
+        1,
+        0,
+        7
+    ),
+    (
+        8,
+        'DIPLOMACIA',
+        'Diplomacia',
+        'PRE',
+        0,
+        0,
+        0,
+        8
+    ),
+    (
+        9,
+        'ENGANACAO',
+        'Enganação',
+        'PRE',
+        0,
+        0,
+        0,
+        9
+    ),
+    (
+        10,
+        'FORTITUDE',
+        'Fortitude',
+        'VIG',
+        0,
+        0,
+        0,
+        10
+    ),
+    (
+        11,
+        'FURTIVIDADE',
+        'Furtividade',
+        'AGI',
+        0,
+        1,
+        0,
+        11
+    ),
+    (
+        12,
+        'INICIATIVA',
+        'Iniciativa',
+        'AGI',
+        0,
+        0,
+        0,
+        12
+    ),
+    (
+        13,
+        'INTIMIDACAO',
+        'Intimidação',
+        'PRE',
+        0,
+        0,
+        0,
+        13
+    ),
+    (
+        14,
+        'INTUICAO',
+        'Intuição',
+        'PRE',
+        0,
+        0,
+        0,
+        14
+    ),
+    (
+        15,
+        'INVESTIGACAO',
+        'Investigação',
+        'INT',
+        0,
+        0,
+        0,
+        15
+    ),
+    (
+        16,
+        'LUTA',
+        'Luta',
+        'FOR',
+        0,
+        0,
+        0,
+        16
+    ),
+    (
+        17,
+        'MEDICINA',
+        'Medicina',
+        'INT',
+        0,
+        0,
+        0,
+        17
+    ),
+    (
+        18,
+        'OCULTISMO',
+        'Ocultismo',
+        'INT',
+        1,
+        0,
+        0,
+        18
+    ),
+    (
+        19,
+        'PERCEPCAO',
+        'Percepção',
+        'PRE',
+        0,
+        0,
+        0,
+        19
+    ),
+    (
+        20,
+        'PILOTAGEM',
+        'Pilotagem',
+        'AGI',
+        1,
+        0,
+        0,
+        20
+    ),
+    (
+        21,
+        'PONTARIA',
+        'Pontaria',
+        'AGI',
+        0,
+        0,
+        0,
+        21
+    ),
+    (
+        22,
+        'PROFISSAO',
+        'Profissão',
+        'INT',
+        1,
+        0,
+        1,
+        22
+    ),
+    (
+        23,
+        'REFLEXOS',
+        'Reflexos',
+        'AGI',
+        0,
+        0,
+        0,
+        23
+    ),
+    (
+        24,
+        'RELIGIAO',
+        'Religião',
+        'PRE',
+        1,
+        0,
+        0,
+        24
+    ),
+    (
+        25,
+        'SOBREVIVENCIA',
+        'Sobrevivência',
+        'INT',
+        0,
+        0,
+        0,
+        25
+    ),
+    (
+        26,
+        'TATICA',
+        'Tática',
+        'INT',
+        1,
+        0,
+        0,
+        26
+    ),
+    (
+        27,
+        'TECNOLOGIA',
+        'Tecnologia',
+        'INT',
+        1,
+        0,
+        0,
+        27
+    ),
+    (
+        28,
+        'VONTADE',
+        'Vontade',
+        'PRE',
+        0,
+        0,
+        0,
+        28
+    );
