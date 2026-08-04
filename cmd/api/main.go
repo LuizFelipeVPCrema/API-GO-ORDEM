@@ -6,6 +6,7 @@ import (
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/classe"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/config"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/database"
+	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/habilidade"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/patente"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/pericia"
 	"github.com/gin-gonic/gin"
@@ -52,6 +53,10 @@ func main() {
 	classeService := classe.NovoService(classeRepository)
 	classeHandler := classe.NovoHandler(classeService)
 
+	habilidadeRepository := habilidade.NovoRepository(db)
+	habilidadeService := habilidade.NovoService(habilidadeRepository)
+	habilidadeHandler := habilidade.NovoHandler(habilidadeService)
+
 	router := gin.Default()
 
 	api := router.Group("/api/v1")
@@ -59,6 +64,7 @@ func main() {
 	patente.RegistrarRotas(api, patenteHandler)
 	pericia.RegistrarRota(api, periciaHandler)
 	classe.RegistrarRotas(api, classeHandler)
+	habilidade.RegisterRotas(api, habilidadeHandler)
 
 	enderecoServidor := ":" + cfg.Server.Port
 
