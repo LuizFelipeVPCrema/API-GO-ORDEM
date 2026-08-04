@@ -26,7 +26,7 @@ func NovoRepository(db *sql.DB) *SQLiteRepository {
 
 func (r *SQLiteRepository) Listar(ctx context.Context, filtro Filtro) ([]Ritual, error) {
 	query := `
-		SELECTE
+		SELECT
 			id,
 			codigo,
 			nome,
