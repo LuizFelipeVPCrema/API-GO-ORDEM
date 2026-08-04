@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/classe"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/config"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/database"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/patente"
@@ -47,12 +48,17 @@ func main() {
 	periciaService := pericia.NovoService(periciaRepository)
 	periciaHandler := pericia.NovoHandler(periciaService)
 
+	classeRepository := classe.NovoRepository(db)
+	classeService := classe.NovoService(classeRepository)
+	classeHandler := classe.NovoHandler(classeService)
+
 	router := gin.Default()
 
 	api := router.Group("/api/v1")
 
 	patente.RegistrarRotas(api, patenteHandler)
 	pericia.RegistrarRota(api, periciaHandler)
+	classe.RegistrarRotas(api, classeHandler)
 
 	enderecoServidor := ":" + cfg.Server.Port
 
