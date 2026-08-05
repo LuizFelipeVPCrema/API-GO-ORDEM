@@ -6,6 +6,7 @@ import (
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/classe"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/config"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/database"
+	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/equipamento"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/habilidade"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/patente"
 	"github.com/LuizFelipeVPCrema/api-go-ordem/internal/pericia"
@@ -62,6 +63,10 @@ func main() {
 	ritualService := ritual.NovoService(ritualRepository)
 	ritualHandler := ritual.NovoHandler(ritualService)
 
+	equipamentoRepository := equipamento.NovoRepository(db)
+	equipamentoService := equipamento.NovoService(equipamentoRepository)
+	equipamentoHandler := equipamento.NovoHandler(equipamentoService)
+
 	router := gin.Default()
 
 	api := router.Group("/api/v1")
@@ -71,6 +76,7 @@ func main() {
 	classe.RegistrarRotas(api, classeHandler)
 	habilidade.RegisterRotas(api, habilidadeHandler)
 	ritual.RegistrarRotas(api, ritualHandler)
+	equipamento.RegistrarRotas(api, equipamentoHandler)
 
 	enderecoServidor := ":" + cfg.Server.Port
 
