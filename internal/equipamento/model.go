@@ -5,13 +5,13 @@ type Codigo string
 type Tipo string
 
 const (
-	TipoArma            Tipo = "ARMA"
-	TipoProtecao        Tipo = "PROTECAO"
-	TipoAcessorio       Tipo = "ACESSORIO"
-	TipoMunicao         Tipo = "MUNICAO"
-	TipoItemOperacional Tipo = "ITEM_OPERACIONAL"
-	TipoItemParanormal  Tipo = "ITEM_PARANORMAL"
-	TipoOutro           Tipo = "OUTRO"
+	TipoEquipamentoArma            Tipo = "ARMA"
+	TipoEquipamentoProtecao        Tipo = "PROTECAO"
+	TipoEquipamentoAcessorio       Tipo = "ACESSORIO"
+	TipoEquipamentoMunicao         Tipo = "MUNICAO"
+	TipoEquipamentoItemOperacional Tipo = "ITEM_OPERACIONAL"
+	TipoEquipamentoItemParanormal  Tipo = "ITEM_PARANORMAL"
+	TipoEquipamentoOutro           Tipo = "OUTRO"
 )
 
 type TipoAplicabilidade string
@@ -77,7 +77,14 @@ type Modificacao struct {
 
 type EquipamentoDetalhado struct {
 	Equipamento
+
+	Arma     *Arma
+	Protecao *Protecao
+	Municao  *Municao
+
 	Modificacoes []Modificacao
+
+	MunicaoCompativeis []MunicaoCompativel
 }
 
 type Filtro struct {

@@ -43,13 +43,13 @@ func normalizarTipo(tipo string) (Tipo, error) {
 	tipoNormalizado := Tipo(strings.ToUpper(strings.TrimSpace(tipo)))
 
 	switch tipoNormalizado {
-	case TipoArma,
-		TipoProtecao,
-		TipoAcessorio,
-		TipoMunicao,
-		TipoItemOperacional,
-		TipoItemParanormal,
-		TipoOutro:
+	case TipoEquipamentoArma,
+		TipoEquipamentoProtecao,
+		TipoEquipamentoAcessorio,
+		TipoEquipamentoMunicao,
+		TipoEquipamentoItemOperacional,
+		TipoEquipamentoItemParanormal,
+		TipoEquipamentoOutro:
 		return tipoNormalizado, nil
 	default:
 		return "", ErrTipoInvalido

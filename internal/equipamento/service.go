@@ -77,13 +77,72 @@ func (s *Service) ListarModificacoes(ctx context.Context, equipamentoID int64) (
 }
 
 func (s *Service) carregarDetalhes(ctx context.Context, equipamentoEncontrado *Equipamento) (*EquipamentoDetalhado, error) {
-	modificacoes, err := s.repository.ListarModificacoes(ctx, equipamentoEncontrado.ID)
+	modificacoes, err :=
+		s.repository.ListarModificacoes(
+			ctx,
+			equipamentoEncontrado.ID,
+		)
 	if err != nil {
 		return nil, err
 	}
 
-	return &EquipamentoDetalhado{
+	detalhado := &EquipamentoDetalhado{
 		Equipamento:  *equipamentoEncontrado,
 		Modificacoes: modificacoes,
-	}, nil
+
+		MunicaoCompativeis: make(
+			[]MunicaoCompativel,
+			0,
+		),
+	}
+
+	switch equipamentoEncontrado.Tipo {
+	case TipoEquipamentoArma:
+		arma, err :=
+			s.repository.BuscarArmaPorEquipamentoID(
+				ctx,
+				equipamentoEncontrado.ID,
+			)
+		if err != nil {
+			return nil, err
+		}
+
+		municoes, err :=
+			s.repository.ListarMunicoesCompativeis(
+				ctx,
+				equipamentoEncontrado.ID,
+			)
+		if err != nil {
+			return nil, err
+		}
+
+		detalhado.Arma = arma
+		detalhado.MunicaoCompativeis = municoes
+
+	case TipoEquipamentoProtecao:
+		protecao, err :=
+			s.repository.BuscarProtecaoPorEquipamentoID(
+				ctx,
+				equipamentoEncontrado.ID,
+			)
+		if err != nil {
+			return nil, err
+		}
+
+		detalhado.Protecao = protecao
+
+	case TipoEquipamentoMunicao:
+		municao, err :=
+			s.repository.BuscarMunicaoPorEquipamentoID(
+				ctx,
+				equipamentoEncontrado.ID,
+			)
+		if err != nil {
+			return nil, err
+		}
+
+		detalhado.Municao = municao
+	}
+
+	return detalhado, nil
 }

@@ -43,7 +43,47 @@ type ModificacaoResponse struct {
 type EquipamentoDetalhadoResponse struct {
 	EquipamentoResponse
 
+	Arma     *ArmaResponse     `json:"arma,omitempty"`
+	Protecao *ProtecaoResponse `json:"protecao,omitempty"`
+	Municao  *MunicaoResponse  `json:"municao,omitempty"`
+
 	Modificacoes []ModificacaoResponse `json:"modificacoes"`
+
+	MunicoesCompativeis []MunicaoCompativelResponse `json:"municoes_compativeis,omitempty"`
+}
+
+type ArmaResponse struct {
+	TipoArma string `json:"tipo_arma"`
+
+	DanoBase string `json:"dano_base"`
+	TipoDano string `json:"tipo_dano"`
+
+	CriticoMargem        int `json:"critico_margem"`
+	CriticoMultiplicador int `json:"critico_multiplicador"`
+
+	Alcance     string `json:"alcance"`
+	Empunhadura string `json:"empunhadura"`
+
+	Recarga *string `json:"recarga,omitempty"`
+}
+
+type ProtecaoResponse struct {
+	TipoProtecao string `json:"tipo_protecao"`
+
+	BonusDefesa      int `json:"bonus_defesa"`
+	PenalidadeTestes int `json:"penalidade_testes"`
+}
+
+type MunicaoResponse struct {
+	DuracaoQuantidade *int   `json:"duracao_quantidade,omitempty"`
+	DuracaoUnidade    string `json:"duracao_unidade"`
+
+	Consumivel bool `json:"consumivel"`
+}
+
+type MunicaoCompativelResponse struct {
+	Equipamento EquipamentoResponse `json:"equipamento"`
+	Municao     MunicaoResponse     `json:"municao"`
 }
 
 func rotuloCategoria(categoria Categoria) string {
@@ -132,12 +172,116 @@ func NovasModificacoesResponse(modificacoes []Modificacao) []ModificacaoResponse
 }
 
 func NovoEquipamentoDetalhadoResponse(equipamento EquipamentoDetalhado) EquipamentoDetalhadoResponse {
-	return EquipamentoDetalhadoResponse{
+	resposta := EquipamentoDetalhadoResponse{
 		EquipamentoResponse: NovoEquipamentoResponse(
 			equipamento.Equipamento,
 		),
+
 		Modificacoes: NovasModificacoesResponse(
 			equipamento.Modificacoes,
 		),
+
+		MunicoesCompativeis: NovasMunicoesCompativeisResponse(
+			equipamento.MunicaoCompativeis,
+		),
 	}
+
+	if equipamento.Arma != nil {
+		arma := NovaArmaResponse(
+			*equipamento.Arma,
+		)
+
+		resposta.Arma = &arma
+	}
+
+	if equipamento.Protecao != nil {
+		protecao := NovaProtecaoResponse(
+			*equipamento.Protecao,
+		)
+
+		resposta.Protecao = &protecao
+	}
+
+	if equipamento.Municao != nil {
+		municao := NovaMunicaoResponse(
+			*equipamento.Municao,
+		)
+
+		resposta.Municao = &municao
+	}
+
+	return resposta
+}
+
+func NovaArmaResponse(
+	arma Arma,
+) ArmaResponse {
+	return ArmaResponse{
+		TipoArma: string(arma.TipoArma),
+
+		DanoBase: arma.DanoBase,
+		TipoDano: arma.TipoDano,
+
+		CriticoMargem:        arma.CriticoMargem,
+		CriticoMultiplicador: arma.CriticoMultiplicador,
+
+		Alcance:     string(arma.Alcance),
+		Empunhadura: string(arma.Empunhadura),
+
+		Recarga: arma.Recarga,
+	}
+}
+
+func NovaProtecaoResponse(
+	protecao Protecao,
+) ProtecaoResponse {
+	return ProtecaoResponse{
+		TipoProtecao: string(
+			protecao.TipoProtecao,
+		),
+
+		BonusDefesa: protecao.BonusDefesa,
+
+		PenalidadeTestes: protecao.PenalidadeTeste,
+	}
+}
+
+func NovaMunicaoResponse(
+	municao Municao,
+) MunicaoResponse {
+	return MunicaoResponse{
+		DuracaoQuantidade: municao.DuracaoQuantidade,
+
+		DuracaoUnidade: string(
+			municao.DuracaoUnidade,
+		),
+
+		Consumivel: municao.Consumivel,
+	}
+}
+
+func NovasMunicoesCompativeisResponse(
+	municoes []MunicaoCompativel,
+) []MunicaoCompativelResponse {
+	respostas := make(
+		[]MunicaoCompativelResponse,
+		0,
+		len(municoes),
+	)
+
+	for _, municao := range municoes {
+		respostas = append(
+			respostas,
+			MunicaoCompativelResponse{
+				Equipamento: NovoEquipamentoResponse(
+					municao.Equipamento,
+				),
+				Municao: NovaMunicaoResponse(
+					municao.Municao,
+				),
+			},
+		)
+	}
+
+	return respostas
 }

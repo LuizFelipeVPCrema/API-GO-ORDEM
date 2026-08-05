@@ -12,6 +12,10 @@ type Repository interface {
 	BuscarPorID(ctx context.Context, id int64) (*Equipamento, error)
 	BuscarPorCodigo(ctx context.Context, codigo Codigo) (*Equipamento, error)
 	ListarModificacoes(ctx context.Context, equipamentoID int64) ([]Modificacao, error)
+	BuscarArmaPorEquipamentoID(ctx context.Context, equipamentoID int64) (*Arma, error)
+	BuscarProtecaoPorEquipamentoID(ctx context.Context, equipamentoID int64) (*Protecao, error)
+	BuscarMunicaoPorEquipamentoID(ctx context.Context, equipamentoID int64) (*Municao, error)
+	ListarMunicoesCompativeis(ctx context.Context, equipamentoID int64) ([]MunicaoCompativel, error)
 }
 
 type SQLiteRepository struct {
@@ -212,13 +216,269 @@ func (r *SQLiteRepository) ListarModificacoes(ctx context.Context, equipamentoID
 	return modificacoes, nil
 }
 
+func (r *SQLiteRepository) BuscarArmaPorEquipamentoID(ctx context.Context, equipamentoID int64) (*Arma, error) {
+	const query = `
+		SELECT
+			equipamento_id,
+			tipo_arma,
+			dano_base,
+			tipo_dano,
+			critico_margem,
+			critico_multiplicador,
+			alcance,
+			empunhadura,
+			recarga
+		FROM armas
+		WHERE equipamento_id = ?
+	`
+
+	row := r.db.QueryRowContext(ctx, query, equipamentoID)
+
+	var (
+		arma        Arma
+		tipoArma    string
+		alcance     string
+		empunhadura string
+		recarga     sql.NullString
+	)
+
+	err := row.Scan(
+		&arma.EquipamentoID,
+		&tipoArma,
+		&arma.DanoBase,
+		&arma.TipoDano,
+		&arma.CriticoMargem,
+		&arma.CriticoMultiplicador,
+		&alcance,
+		&empunhadura,
+		&recarga,
+	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrDetalheEquipamentoNaoEncontrado
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("erro ao consultar detalhes da arma: %w", err)
+	}
+
+	arma.TipoArma = TipoArma(tipoArma)
+	arma.Alcance = Alcance(alcance)
+	arma.Empunhadura = Empunhadura(empunhadura)
+
+	if recarga.Valid {
+		valor := recarga.String
+		arma.Recarga = &valor
+	}
+
+	return &arma, nil
+}
+
+func (r *SQLiteRepository) BuscarProtecaoPorEquipamentoID(ctx context.Context, equipamentoID int64) (*Protecao, error) {
+	const query = `
+		SELECT
+			equipamento_id,
+			tipo_protecao,
+			bonus_defesa,
+			penalidade_testes
+		FROM protecoes
+		WHERE equipamento_id = ?
+	`
+
+	row := r.db.QueryRowContext(ctx, query, equipamentoID)
+
+	var (
+		protecao     Protecao
+		tipoProtecao string
+	)
+
+	err := row.Scan(
+		&protecao.EquipamentoID,
+		&tipoProtecao,
+		&protecao.BonusDefesa,
+		&protecao.PenalidadeTeste,
+	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrDetalheEquipamentoNaoEncontrado
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("erro ao consultar detalhes da protecao: %w", err)
+	}
+
+	protecao.TipoProtecao = TipoProtecao(tipoProtecao)
+
+	return &protecao, nil
+}
+
+func (r *SQLiteRepository) BuscarMunicaoPorEquipamentoID(ctx context.Context, equipamentoID int64) (*Municao, error) {
+	const query = `
+		SELECT
+			equipamento_id,
+			duracao_quantidade,
+			duracao_unidade,
+			cosumivel
+		FROM municoes
+		WHERE equipamento_id = ?
+	`
+
+	row := r.db.QueryRowContext(ctx, query, equipamentoID)
+
+	var (
+		municao           Municao
+		duracaoQuantidade sql.NullInt64
+		duracaoUnidade    string
+		consumivel        int
+	)
+
+	err := row.Scan(
+		&municao.EquipamentoID,
+		&duracaoQuantidade,
+		&duracaoUnidade,
+		&consumivel,
+	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrDetalheEquipamentoNaoEncontrado
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("erro ao consultar detalhes da municao: %w", err)
+	}
+
+	municao.DuracaoUnidade = UnidadeDuracao(duracaoUnidade)
+
+	municao.Consumivel = consumivel == 1
+
+	if duracaoQuantidade.Valid {
+		valor := int(duracaoQuantidade.Int64)
+		municao.DuracaoQuantidade = &valor
+	}
+
+	return &municao, nil
+}
+
+func (r *SQLiteRepository) ListarMunicoesCompativeis(ctx context.Context, armaEquipamentoID int64) ([]MunicaoCompativel, error) {
+	const query = `
+		SELECT
+			e.id,
+			e.codigo,
+			e.nome,
+			e.tipo,
+			e.categoria_base,
+			e.espacos_base,
+			e.descricao_resumida,
+			e.fonte_regra,
+			e.versao_regra,
+			e.pagina_referencia,
+			e.ativa,
+			m.equipamento_id,
+			m.duracao_quantidade,
+			m.duracao_unidade,
+			m.consumivel
+		FROM arma_municoes am
+		INNER JOIN equipamentos e
+			ON e.id = am.municao_equipamento_id
+		INNER JOIN municoes m
+			ON m.equipamento_id = e.id
+		WHERE 
+			am.arma_equipamento_id = ?
+			AND e.ativa = 1
+		ORDER BY e.nome
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, armaEquipamentoID)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao consultar municoes compativeis: %w", err)
+	}
+	defer rows.Close()
+
+	resultados := make([]MunicaoCompativel, 0)
+
+	for rows.Next() {
+		var (
+			resultado MunicaoCompativel
+
+			codigo    string
+			tipo      string
+			categoria int
+
+			descricao sql.NullString
+			versao    sql.NullString
+			pagina    sql.NullInt64
+
+			equipamentoAtivo int
+
+			duracaoQuantidade sql.NullInt64
+			duracaoUnidade    string
+			consumivel        int
+		)
+
+		err := rows.Scan(
+			&resultado.Equipamento.ID,
+			&codigo,
+			&resultado.Equipamento.Nome,
+			&tipo,
+			&categoria,
+			&resultado.Equipamento.EspacosBase,
+			&descricao,
+			&resultado.Equipamento.FonteRegra,
+			&versao,
+			&pagina,
+			&equipamentoAtivo,
+			&resultado.Municao.EquipamentoID,
+			&duracaoQuantidade,
+			&duracaoUnidade,
+			&consumivel,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("erro ao ler municao compativel: %w", err)
+		}
+
+		resultado.Equipamento.Codigo = Codigo(codigo)
+		resultado.Equipamento.Tipo = Tipo(tipo)
+		resultado.Equipamento.CategoriaBase = Categoria(categoria)
+		resultado.Equipamento.Ativa = equipamentoAtivo == 1
+		resultado.Municao.DuracaoUnidade = UnidadeDuracao(duracaoUnidade)
+		resultado.Municao.Consumivel = consumivel == 1
+
+		if descricao.Valid {
+			valor := descricao.String
+			resultado.Equipamento.DescricaoResumida = &valor
+		}
+
+		if versao.Valid {
+			valor := versao.String
+			resultado.Equipamento.VersaoRegra = &valor
+		}
+
+		if pagina.Valid {
+			valor := int(pagina.Int64)
+			resultado.Equipamento.PaginaReferencia = &valor
+		}
+
+		if duracaoQuantidade.Valid {
+			valor := int(duracaoQuantidade.Int64)
+
+			resultado.Municao.DuracaoQuantidade = &valor
+		}
+
+		resultados = append(resultados, resultado)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("erro durante leitura das municoes: %w", err)
+	}
+
+	return resultados, nil
+}
+
 type scanner interface {
 	Scan(dest ...any) error
 }
 
-func escanearEquipamento(
-	row scanner,
-) (Equipamento, error) {
+func escanearEquipamento(row scanner) (Equipamento, error) {
 	var (
 		equipamentoEncontrado Equipamento
 
@@ -288,9 +548,7 @@ func escanearEquipamento(
 	return equipamentoEncontrado, nil
 }
 
-func escanearModificacao(
-	row scanner,
-) (Modificacao, error) {
+func escanearModificacao(row scanner) (Modificacao, error) {
 	var (
 		modificacaoEncontrada Modificacao
 
