@@ -1,39 +1,52 @@
 package personagem
 
-import "time"
-
 type Personagem struct {
-	ID        uint
-	UsuarioID uint
+	ID int64
 
-	OrigemID  uint
-	ClasseID  uint
-	TrilhaID  uint
-	PatenteID uint
-	NexID     uint
+	Nome    string
+	Jogador *string
 
-	Nome        string
-	NomeJogador string
-	Idade       *int
+	ClasseID int64
 
-	Aparencia     string
-	Personalidade string
-	Historia      string
+	NEX             int
+	PontosPrestigio int
 
-	Versao int
+	Idade *int
 
-	CriadoEm     time.Time
-	AtualizadoEm time.Time
-	ExcluidoEm   time.Time
+	Aparencia     *string
+	Personalidade *string
+	Historia      *string
+	Objetivo      *string
+
+	Atributos Atributos
+	Recursos  Recursos
+
+	Ativa bool
 }
 
-type FichaCompleta struct {
-	Personagem
+type Atributos struct {
+	Agilidade int
+	Forca     int
+	Intelecto int
+	Presenca  int
+	Vigor     int
+}
 
-	// Atributos  Atributos
-	// Recursos   Recursos
-	// Pericias   []Pericia
-	// Rituais    []Ritual
-	// Habilidades []Habilidade
-	// Itens      []Item
+type Recursos struct {
+	PVAtual  int
+	PVMaximo int
+
+	PEAtual  int
+	PEMaximo int
+
+	SanidadeAtual  int
+	SanidadeMaxima int
+}
+
+type Filtro struct {
+	Nome     string
+	ClasseID *int64
+
+	Limit  int
+	Offset int
 }

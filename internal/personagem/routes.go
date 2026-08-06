@@ -4,10 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PersonagemRoutes(router *gin.Engine) {
-	personagemRoutes := router.Group("/personagens")
-	personagemRoutes.GET("/", GetPersonagem)
-	personagemRoutes.POST("/", CreatePersonagem)
-	personagemRoutes.PUT("/:id", UpdatePersonagem)
-	personagemRoutes.DELETE("/:id", DeletePersonagem)
+func RegistrarRotas(router *gin.RouterGroup, handler *Handler) {
+	grupo := router.Group("/personagens")
+
+	grupo.POST("", handler.Criar)
+	grupo.GET("", handler.Listar)
+	grupo.GET("/:id", handler.BuscarPorID)
+	grupo.PATCH("/:id", handler.Atualizar)
+	grupo.DELETE("/:id", handler.Remover)
 }
